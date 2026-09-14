@@ -1,0 +1,460 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  username String?
+  name     String?
+  email    String  @unique
+
+  description String?
+  contactNo   String  @unique
+  location    String?
+  address     String?
+  password    String
+
+  lang      Lang     @default(ENG)
+  role      Role     @default(CUSTOMER)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  admin    Admin?
+  customer Customer?
+
+  @@map("users")
+}
+
+model Admin {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  fullName  String
+  location  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id] , onDelete: Cascade)
+
+  @@map("admins")
+}
+
+enum IsApproved {
+  PENDING
+  APPROVED
+  DE_ACTIVATED
+  REJECTED
+}
+
+model Customer {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  fullName               String?
+  companyName            String?
+  companyRegistionNumber String?
+  vatNumber              String?
+  eoriNumber             String?
+  companyEmail           String?
+  country                String?
+  isApproved             IsApproved @default(PENDING)
+  isActive               Boolean    @default(false)
+  currency               Currency?  @default(EUR)
+  shippingCost           Float      @default(0)
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  userId                 String     @unique @db.ObjectId
+  user                   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  registeredBusinessAddress RegisteredBusinessAddress?
+  primaryBusinessContact    PrimaryBusinessContact?
+  BillingInformation        BillingInformation[]
+  shippingAddresses         ShippingAddresses[]
+  providerProfiteAdd        ProviderProfiteAdd[]
+
+  companyInformation CompanyInformation[]
+  teamMembers        TeamMember[]
+  saveQuates         SaveQuates[]
+  saveOrder          SaveOrder[]
+
+  @@map("customers")
+}
+
+model CurrencyControll {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  USD       Float    @default(0)
+  GBP       Float    @default(0)
+  EUR       Float    @default(0)
+  isDelete  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProviderProfiteAdd {
+
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  customerId    String   @db.ObjectId
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  profiteMargin Float    @default(20)
+  brandId       String   @db.ObjectId
+  brand         OurBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  isActive      Boolean  @default(true)
+  isDelete      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([customerId, brandId])
+  @@index([customerId, isActive])
+  @@map("providerProfiteAdd")
+}
+
+model TeamMember {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  fullName  String
+  email     String  @unique
+  contactNo String? @unique
+  role      Role    @default(AGENT)
+
+  status     CustomerStatus @default(ACTIVE)
+  lang       Lang           @default(ENG)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  customerId String         @db.ObjectId
+  customer   Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("team_members")
+}
+
+model RegisteredBusinessAddress {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String?
+  postalCode   String
+  country      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  customerId   String   @unique @db.ObjectId
+  customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model CompanyInformation {
+  id                        String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyName               String?
+  addressLine1              String?
+  addressLine2              String?
+  city                      String?
+  country                   String?
+  webSite                   String?
+  companyRegistrationNumber String?
+  VatNumber                 String?
+  EORINumber                String
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  customerId                String   @unique @db.ObjectId
+  customer                  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model PrimaryBusinessContact {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  contactName    String
+  emailAddress   String
+  phoneNumber    String
+  whatsAppNumber String?
+  websiteUrl     String?
+  industry       String?
+  companySize    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  customerId     String   @unique @db.ObjectId
+  customer       Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+model BillingInformation {
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  accountPaybleContact   String?
+  emailAddress           String?
+  phoneNumber            String?
+  paymentTerms           String[]
+  creditLimit            Float?   @default(0)
+  paymentType            String?
+  shippingResponsibility String?
+  shippingServiceType    String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  customerId             String   @unique @db.ObjectId
+  customer               Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("billing_information")
+}
+
+model ShippingAddresses {
+  id                     String   @id @default(auto()) @map("_id") @db.ObjectId
+  country                String?
+  saveAddressName        String?
+  companyName            String?
+  shippingAddressContact String?
+  state_province         String?
+  city                   String?
+  addressLine1           String?
+  addressLine2           String?
+  deliveryPreference     String?
+  phoneNumber            String?
+  state                  String?
+  postalCode             String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  customerId             String   @unique @db.ObjectId
+  customer               Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("shipping_addresses")
+}
+
+model OurBrand {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  Brand            String   @unique
+  validDate        String?
+  brandDescription String?
+  logo             String?
+  websiteUrl       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  providerProfiteAdd ProviderProfiteAdd[]
+
+  @@map("our_brand")
+}
+
+model ApiProviderList {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  providerName        String   @unique
+  providerUrl         String?  @unique
+  providerDescription String?
+  logo                String?
+  contactEmail        String?
+  contactPhone        String?
+  isActive            Boolean  @default(true)
+  isDeleted           Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("api_provider_list")
+}
+
+model ProductUploadFile {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  fileName   String   @unique
+  fileType   String?
+  fileSize   Int?
+  isComplate Boolean? @default(false)
+  percentage Int?     @default(0)
+  isActive   Boolean  @default(true)
+  isDeleted  Boolean  @default(false)
+  uploadedBy String
+  uploadedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  Product Product[]
+
+  @@map("product_upload_files")
+}
+
+// enum ProductTimeTypes {
+//     DAYS
+//     WEEKS
+//     MONTHS
+// }
+
+// prodeuct list not complete
+model Product {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  ProductName        String?
+  Brand              String?   
+  PartNumber         String
+  height             String?
+  coo                String?
+  supplierName       String?
+  quantity           Int?
+  Price              Float
+  LeadTimeUnits      String
+  LeadTimeTypes      String
+  hsCode             String?
+  countryOfOrigin    String?
+  weight             Float?
+  productDescription String?
+  productImage       String?
+  Currency           Currency? @default(EUR)
+  isActive           Boolean   @default(true)
+  isDeleted          Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  productUploadFileId String             @db.ObjectId
+  productUploadFile   ProductUploadFile? @relation(fields: [productUploadFileId], references: [id], onDelete: Cascade)
+
+  @@index([PartNumber])
+  @@index([Brand])
+  @@index([PartNumber, Brand])
+  @@index([isActive, PartNumber])
+  @@index([ProductName])
+  @@index([productUploadFileId])
+  @@map("products")
+}
+
+enum ProductStatus {
+  PROCESSING
+  NEW
+  COMPLETED
+  CANCELLED
+  PENDING
+}
+
+enum OderType {
+  RE_ORDER
+  ONE_TIME_ORDER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CONFIRMED
+  CANCELLED
+  ON_HOLD
+}
+
+
+model SaveOrder {
+  id              String      @id @default(auto()) @map("_id") @db.ObjectId
+  customerId      String      @db.ObjectId
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId         String      @unique
+  poReferenceId   String?
+  agentEmail      String?
+  holderByName    String?
+  gradTotal       Float?
+  vat             Float?
+  shippingCost    Float?
+  orderType       OderType    @default(ONE_TIME_ORDER)
+  currency        Currency?   @default(USD)
+  status          OrderStatus @default(PROCESSING)
+  productList     Json?
+  customerDetails Json?
+  billingAddress  Json?
+  shippingAddress Json?
+  deliveryAddress Json?
+  paymentTerms    String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@map("save_orders")
+}
+
+enum QuotaStatus {
+  PURCHASED
+  EXPIRE
+  ACTIVE
+  INACTIVE
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum QuotaType {
+  REQUEST_QUOTATION
+  SAVE_QUOTATION
+}
+
+model SaveQuates {
+  id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  customerId         String      @db.ObjectId
+  customer           Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  quationType        QuotaType   @default(REQUEST_QUOTATION)
+  quataReferenceId   String?
+  email              String?
+  quoationGenerateId String      @unique
+  currency           Currency?   @default(USD)
+  status             QuotaStatus @default(PENDING)
+  productList        Json?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  @@map("save_quotes")
+}
+
+model ContactUs {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  fullName    String
+  companyName String?
+  email       String
+  contactNo   String?
+  message     String?
+  subject     String?
+  attachment  String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("contact_us")
+}
+
+enum PaymentType {
+  PAYPAL
+  WRIE_TRANSFER
+  ONLINE_CARD
+}
+
+enum ShippingResponsibility {
+  EXW_EX_WORKS
+  DAP_DELIVERED_AT_PLACE
+  DDP_DELIVERED_DUTY_PAID
+  FCA_FREE_CARRIER
+}
+
+enum ShippingServiceType {
+  AIR
+  SEA
+  ROAD
+  RAIL
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CUSTOMER
+  AGENT
+}
+
+enum Lang {
+  ENG
+  ARB
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  AED
+  SAR
+  KWD
+  BHD
+  OMR
+  QAR
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}

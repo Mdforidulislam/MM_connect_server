@@ -1,0 +1,426 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table users {
+  id String [pk]
+  username String
+  name String
+  email String [unique, not null]
+  description String
+  contactNo String [unique, not null]
+  location String
+  address String
+  password String [not null]
+  lang Lang [not null, default: 'ENG']
+  role Role [not null, default: 'CUSTOMER']
+  avatar String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  admin admins
+  customer customers
+}
+
+Table admins {
+  id String [pk]
+  userId String [unique, not null]
+  fullName String [not null]
+  location String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user users [not null]
+}
+
+Table customers {
+  id String [pk]
+  fullName String
+  companyName String
+  companyRegistionNumber String
+  vatNumber String
+  eoriNumber String
+  companyEmail String
+  country String
+  isApproved IsApproved [not null, default: 'PENDING']
+  isActive Boolean [not null, default: false]
+  currency Currency [default: 'EUR']
+  shippingCost Float [not null, default: 0]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  userId String [unique, not null]
+  user users [not null]
+  registeredBusinessAddress RegisteredBusinessAddress
+  primaryBusinessContact PrimaryBusinessContact
+  BillingInformation billing_information [not null]
+  shippingAddresses shipping_addresses [not null]
+  providerProfiteAdd providerProfiteAdd [not null]
+  companyInformation CompanyInformation [not null]
+  teamMembers team_members [not null]
+  saveQuates save_quotes [not null]
+  saveOrder save_orders [not null]
+}
+
+Table CurrencyControll {
+  id String [pk]
+  USD Float [not null, default: 0]
+  GBP Float [not null, default: 0]
+  EUR Float [not null, default: 0]
+  isDelete Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table providerProfiteAdd {
+  id String [pk]
+  customerId String [not null]
+  customer customers [not null]
+  profiteMargin Float [not null, default: 20]
+  brandId String [not null]
+  brand our_brand [not null]
+  isActive Boolean [not null, default: true]
+  isDelete Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+
+  indexes {
+    (customerId, brandId) [unique]
+  }
+}
+
+Table team_members {
+  id String [pk]
+  fullName String [not null]
+  email String [unique, not null]
+  contactNo String [unique]
+  role Role [not null, default: 'AGENT']
+  status CustomerStatus [not null, default: 'ACTIVE']
+  lang Lang [not null, default: 'ENG']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  customerId String [not null]
+  customer customers [not null]
+}
+
+Table RegisteredBusinessAddress {
+  id String [pk]
+  addressLine1 String [not null]
+  addressLine2 String
+  city String [not null]
+  state String
+  postalCode String [not null]
+  country String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  customerId String [unique, not null]
+  customer customers [not null]
+}
+
+Table CompanyInformation {
+  id String [pk]
+  companyName String
+  addressLine1 String
+  addressLine2 String
+  city String
+  country String
+  webSite String
+  companyRegistrationNumber String
+  VatNumber String
+  EORINumber String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  customerId String [unique, not null]
+  customer customers [not null]
+}
+
+Table PrimaryBusinessContact {
+  id String [pk]
+  contactName String [not null]
+  emailAddress String [not null]
+  phoneNumber String [not null]
+  whatsAppNumber String
+  websiteUrl String
+  industry String
+  companySize String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  customerId String [unique, not null]
+  customer customers [not null]
+}
+
+Table billing_information {
+  id String [pk]
+  accountPaybleContact String
+  emailAddress String
+  phoneNumber String
+  paymentTerms String[] [not null]
+  creditLimit Float [default: 0]
+  paymentType String
+  shippingResponsibility String
+  shippingServiceType String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  customerId String [unique, not null]
+  customer customers [not null]
+}
+
+Table shipping_addresses {
+  id String [pk]
+  country String
+  saveAddressName String
+  companyName String
+  shippingAddressContact String
+  state_province String
+  city String
+  addressLine1 String
+  addressLine2 String
+  deliveryPreference String
+  phoneNumber String
+  state String
+  postalCode String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  customerId String [unique, not null]
+  customer customers [not null]
+}
+
+Table our_brand {
+  id String [pk]
+  Brand String [unique, not null]
+  validDate String
+  brandDescription String
+  logo String
+  websiteUrl String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  providerProfiteAdd providerProfiteAdd [not null]
+}
+
+Table api_provider_list {
+  id String [pk]
+  providerName String [unique, not null]
+  providerUrl String [unique]
+  providerDescription String
+  logo String
+  contactEmail String
+  contactPhone String
+  isActive Boolean [not null, default: true]
+  isDeleted Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table product_upload_files {
+  id String [pk]
+  fileName String [unique, not null]
+  fileType String
+  fileSize Int
+  isComplate Boolean [default: false]
+  percentage Int [default: 0]
+  isActive Boolean [not null, default: true]
+  isDeleted Boolean [not null, default: false]
+  uploadedBy String [not null]
+  uploadedAt DateTime [default: `now()`, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  Product products [not null]
+}
+
+Table products {
+  id String [pk]
+  ProductName String
+  Brand String
+  PartNumber String [not null]
+  height String
+  coo String
+  supplierName String
+  quantity Int
+  Price Float [not null]
+  LeadTimeUnits String [not null]
+  LeadTimeTypes String [not null]
+  hsCode String
+  countryOfOrigin String
+  weight Float
+  productDescription String
+  productImage String
+  Currency Currency [default: 'EUR']
+  isActive Boolean [not null, default: true]
+  isDeleted Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  productUploadFileId String [not null]
+  productUploadFile product_upload_files
+}
+
+Table save_orders {
+  id String [pk]
+  customerId String [not null]
+  customer customers [not null]
+  orderId String [unique, not null]
+  poReferenceId String
+  agentEmail String
+  holderByName String
+  gradTotal Float
+  vat Float
+  shippingCost Float
+  orderType OderType [not null, default: 'ONE_TIME_ORDER']
+  currency Currency [default: 'USD']
+  status OrderStatus [not null, default: 'PROCESSING']
+  productList Json
+  customerDetails Json
+  billingAddress Json
+  shippingAddress Json
+  deliveryAddress Json
+  paymentTerms String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table save_quotes {
+  id String [pk]
+  customerId String [not null]
+  customer customers [not null]
+  quationType QuotaType [not null, default: 'REQUEST_QUOTATION']
+  quataReferenceId String
+  email String
+  quoationGenerateId String [unique, not null]
+  currency Currency [default: 'USD']
+  status QuotaStatus [not null, default: 'PENDING']
+  productList Json
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table contact_us {
+  id String [pk]
+  fullName String [not null]
+  companyName String
+  email String [not null]
+  contactNo String
+  message String
+  subject String
+  attachment String
+  isRead Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Enum IsApproved {
+  PENDING
+  APPROVED
+  DE_ACTIVATED
+  REJECTED
+}
+
+Enum ProductStatus {
+  PROCESSING
+  NEW
+  COMPLETED
+  CANCELLED
+  PENDING
+}
+
+Enum OderType {
+  RE_ORDER
+  ONE_TIME_ORDER
+}
+
+Enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CONFIRMED
+  CANCELLED
+  ON_HOLD
+}
+
+Enum QuotaStatus {
+  PURCHASED
+  EXPIRE
+  ACTIVE
+  INACTIVE
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+Enum QuotaType {
+  REQUEST_QUOTATION
+  SAVE_QUOTATION
+}
+
+Enum PaymentType {
+  PAYPAL
+  WRIE_TRANSFER
+  ONLINE_CARD
+}
+
+Enum ShippingResponsibility {
+  EXW_EX_WORKS
+  DAP_DELIVERED_AT_PLACE
+  DDP_DELIVERED_DUTY_PAID
+  FCA_FREE_CARRIER
+}
+
+Enum ShippingServiceType {
+  AIR
+  SEA
+  ROAD
+  RAIL
+}
+
+Enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CUSTOMER
+  AGENT
+}
+
+Enum Lang {
+  ENG
+  ARB
+}
+
+Enum Currency {
+  USD
+  EUR
+  GBP
+  AED
+  SAR
+  KWD
+  BHD
+  OMR
+  QAR
+}
+
+Enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+Ref: admins.userId - users.id [delete: Cascade]
+
+Ref: customers.userId - users.id [delete: Cascade]
+
+Ref: providerProfiteAdd.customerId > customers.id [delete: Cascade]
+
+Ref: providerProfiteAdd.brandId > our_brand.id [delete: Cascade]
+
+Ref: team_members.customerId > customers.id [delete: Cascade]
+
+Ref: RegisteredBusinessAddress.customerId - customers.id [delete: Cascade]
+
+Ref: CompanyInformation.customerId > customers.id [delete: Cascade]
+
+Ref: PrimaryBusinessContact.customerId - customers.id [delete: Cascade]
+
+Ref: billing_information.customerId > customers.id [delete: Cascade]
+
+Ref: shipping_addresses.customerId > customers.id [delete: Cascade]
+
+Ref: products.productUploadFileId > product_upload_files.id [delete: Cascade]
+
+Ref: save_orders.customerId > customers.id [delete: Cascade]
+
+Ref: save_quotes.customerId > customers.id [delete: Cascade]
