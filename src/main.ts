@@ -19,23 +19,38 @@ async function bootstrap() {
     rawBody: true,
   });
 
+const allowedOrigins = [
+    'https://www.mmconnect.co.uk',
+    'https://mmconnect.co.uk',
+    'https://mm-connect-client.onrender.com',
+    'https://Bajram.code-commando.com',
+    'https://Bajram-client.vercel.app',
+    'https://bovila-frontend.vercel.app',
+    'https://www.darpm.site',
+    'https://darpm.site',
+    'http://localhost:3000',
+    'http://10.0.50.157:3000',
+  ];
+
   app.enableCors({
-    origin: [
-      "http://10.0.50.157:3000",
-      "https://mmconnect.co.uk",
-      "https://www.mmconnect.co.uk", 
-      'http://localhost:3000',
-      'https://your-frontend-domain.com',
-      'https://Bajram.code-commando.com',
-      'https://www.darpm.site',
-      'https://darpm.site',
-      'https://Bajram-client.vercel.app',
-      'https://bovila-frontend.vercel.app',
-      'https://mm-connect-client.onrender.com'
-    ],
+    origin: (origin : any, callback : any) => {
+      // allow requests with no origin (like mobile apps, curl, postman)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ["Content-Type", "Authorization", "Origin", "X-Requested-With", "Accept", "Access-Control-Allow-Origin"]
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Origin',
+      'X-Requested-With',
+      'Accept',
+      'Access-Control-Allow-Origin',
+    ],
   });
 
   // app.use('/api/v1/webhook', express.raw({ type: 'application/json' }));
@@ -76,3 +91,4 @@ async function bootstrap() {
 }
 
 bootstrap();
+
