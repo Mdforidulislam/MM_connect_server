@@ -30,7 +30,8 @@ async function bootstrap() {
       'https://www.darpm.site',
       'https://darpm.site',
       'https://Bajram-client.vercel.app',
-      'https://bovila-frontend.vercel.app'
+      'https://bovila-frontend.vercel.app',
+      'https://mm-connect-client.onrender.com'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
