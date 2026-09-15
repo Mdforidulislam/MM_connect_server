@@ -15,7 +15,7 @@ async function getCollectionUidByName(name) {
     headers: { 'X-Api-Key': POSTMAN_API_KEY },
   });
 
-  const match = data.collections.find((coll) => coll.name === name);
+  const match = data.collections.find((coll) => coll.name === name); 
   return match?.uid || null;
 }
 
