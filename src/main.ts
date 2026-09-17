@@ -23,11 +23,6 @@ const allowedOrigins = [
     'https://www.mmconnect.co.uk',
     'https://mmconnect.co.uk',
     'https://mm-connect-client.onrender.com',
-    'https://Bajram.code-commando.com',
-    'https://Bajram-client.vercel.app',
-    'https://bovila-frontend.vercel.app',
-    'https://www.darpm.site',
-    'https://darpm.site',
     'http://localhost:3000',
     'http://10.0.50.157:3000',
   ];
