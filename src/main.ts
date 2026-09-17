@@ -1,6 +1,6 @@
 import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import  cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '@/app/app.module';
@@ -8,7 +8,6 @@ import * as fs from 'fs';
 import { HttpErrorFilter } from './utils/httpErrorFilter';
 
 async function bootstrap() {
-
   const app = await NestFactory.create(AppModule, {
     logger: new ConsoleLogger({
       prefix: 'euhan-nest',
@@ -19,7 +18,15 @@ async function bootstrap() {
     rawBody: true,
   });
 
-const allowedOrigins = [
+  // 1. Global Prefix সবার আগে সেট করো
+  app.setGlobalPrefix('api/v1');
+
+  // 2. Cookie parser এবং Filters যুক্ত করো
+  app.use(cookieParser());
+  app.useGlobalFilters(new HttpErrorFilter());
+
+  // 3. CORS Configuration
+  const allowedOrigins = [
     'https://www.mmconnect.co.uk',
     'https://mmconnect.co.uk',
     'https://mm-connect-client.onrender.com',
@@ -28,32 +35,28 @@ const allowedOrigins = [
   ];
 
   app.enableCors({
-    origin: (origin : any, callback : any) => {
-      // allow requests with no origin (like mobile apps, curl, postman)
+    origin: (origin, callback) => {
+      // Browser request, Postman, or exact allowed origin match
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false); // Exception না ছুড়ে false রিটার্ন করা ভালো
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
     allowedHeaders: [
       'Content-Type',
       'Authorization',
       'Origin',
       'X-Requested-With',
       'Accept',
-      'Access-Control-Allow-Origin',
     ],
   });
 
-  // app.use('/api/v1/webhook', express.raw({ type: 'application/json' }));
-
-  app.setGlobalPrefix('api/v1');
-  app.useGlobalFilters(new HttpErrorFilter())
-
-  // validation pipe
+  // Validation Pipe
   app.useGlobalPipes(
     new ValidationPipe({
       disableErrorMessages: false,
@@ -64,13 +67,10 @@ const allowedOrigins = [
     }),
   );
 
-  app.use(cookieParser());
-
   const configService = app.get(ConfigService);
-
   const port = configService.get<number>('PORT') || 5000;
-  
 
+  // Swagger Specs
   const config = new DocumentBuilder()
     .setTitle('Mmengserv')
     .setDescription('The mmengserv API description')
@@ -86,4 +86,3 @@ const allowedOrigins = [
 }
 
 bootstrap();
-
