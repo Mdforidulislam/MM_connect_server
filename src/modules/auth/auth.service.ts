@@ -3,7 +3,7 @@ import { sendEmailWithSendGrid } from '@/email/sendGrid';
 import { PrismaService } from '@/helper/prisma.service';
 import { BrevoEmailParams } from '@/interface/brevo';
 import { UserService } from '@/modules/user/user.service';
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {  IsApproved, Role } from '@prisma/client';
@@ -22,63 +22,71 @@ export class AuthService {
     private prisma: PrismaService,
   ) { }
 
-  async login(data: {
-    email: string;
-    password: string;
-  }): Promise<{ accessToken: string; refreshToken: string, user: any }> {
-    const { email, password } = data;
+async login(data: {
+  email: string;
+  password: string;
+}): Promise<{ accessToken: string; refreshToken: string; user: any }> {
+  const { email, password } = data;
 
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      include: { 
-        admin: true,
-        customer: true
-       }
-    });
+  // 1. Fetch User
+  const user = await this.prisma.user.findUnique({
+    where: { email },
+    include: {
+      admin: true,
+      customer: true,
+    },
+  });
 
-    if (
-      (user?.customer?.isApproved === IsApproved.PENDING ||
-        user?.customer?.isApproved === IsApproved.DE_ACTIVATED ||
-        user?.customer?.isApproved === IsApproved.REJECTED
-      ) &&
-      user?.role === Role.CUSTOMER
-    ) {
-      throw new BadRequestException('Customer is not approved');
-    }
-   
-
-    if (!user) {
-      throw new ApiError(HttpStatus.NOT_FOUND, 'User not found');
-    }
-
-    const isPasswordMatched = await this.bcryptService.compare(
-      password,
-      user.password!,
-    );
-
-    if (!isPasswordMatched) {
-      throw new ApiError(HttpStatus.UNAUTHORIZED, 'Password is incorrect');
-    }
-
-    const payload = {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: user.username,
-      avatar: user.avatar,
-    };
-
-    const accessToken = this.jwtService.signAsync(payload);
-    const refreshToken = this.jwtService.signAsync(payload);
-
-    return {
-      user: {
-        ...payload
-      },
-      accessToken: await accessToken,
-      refreshToken: await refreshToken,
-    };
+  // 2. CHECK USER EXISTENCE FIRST!
+  if (!user) {
+    throw new NotFoundException('User not found');
   }
+
+  // 3. Password Verification (Check if password exists on user)
+  if (!user.password) {
+    throw new UnauthorizedException('Invalid credentials');
+  }
+
+  const isPasswordMatched = await this.bcryptService.compare(
+    password,
+    user.password,
+  );
+
+  if (!isPasswordMatched) {
+    throw new UnauthorizedException('Password is incorrect');
+  }
+
+  // 4. Check Customer Approval Status
+if (
+  user.role === Role.CUSTOMER &&
+  user.customer &&
+  ([IsApproved.PENDING, IsApproved.DE_ACTIVATED, IsApproved.REJECTED] as IsApproved[]).includes(
+    user.customer.isApproved,
+  )
+) {
+  throw new BadRequestException('Customer is not approved');
+}
+
+  // 5. Payload & Token Generation
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.username,
+    avatar: user.avatar,
+  };
+
+  const [accessToken, refreshToken] = await Promise.all([
+    this.jwtService.signAsync(payload),
+    this.jwtService.signAsync(payload),
+  ]);
+
+  return {
+    user: payload,
+    accessToken,
+    refreshToken,
+  };
+}
 
   async getMe(user: any) {
 
